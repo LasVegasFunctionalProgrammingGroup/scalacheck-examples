@@ -42,16 +42,19 @@ class PairTest extends FreeSpec
 
       "not equal when different values are in reversed order" in {
         forAll { (i: Int, j: Int) =>
-          //classify(i == j, "filtered check") {
-            whenever (i != j) {
-              new Pair(i, j) must not equal (new Pair(j, i))
-            }
-          //}
+          whenever (i != j) {
+            new Pair(i, j) must not equal (new Pair(j, i))
+          }
         }
       }
     }
 
     "hash code has an even distribution" in {
+      /*
+       This is actually kind of abusing the ScalaCheck
+       machinery from generators and forAll to have
+       a convenient set of randomized data to test
+      */
       val list = scala.collection.mutable.Buffer[Int]()
 
       val stringSize = 8
@@ -59,15 +62,26 @@ class PairTest extends FreeSpec
       def binaryString = Gen.listOfN(stringSize, binaryChar) map { _.mkString("") }
       val rounds = 1000
 
-      val bucketCount = Math.pow(2, stringSize)
+      // there are 2^n binary strings of length n
+      // and for a pair of strings A and B, there's Pair(A, B) and Pair(B, A)
+      // so total possible distinct hashes is 2 * 2^n
+      val bucketCount = 2*Math.pow(2, stringSize)
+      // the likelihood of any particular hash having been calculated is
+      // numberOfHashes * 1 / possibleDistinctHashCount
       val likelihood = Math.ceil(rounds / bucketCount)
 
-      forAll[String, String](binaryString, binaryString, minSuccessful(rounds), maxSize(stringSize)) {
+      forAll(binaryString, binaryString, minSuccessful(rounds)) {
         (a: String, b: String) => list += new Pair(a, b).hashCode()
       }
 
+      // as long as the most common hash was not too common, we can
+      // infer that the hash function has a reasonably good spread
       val maxCount: Int = list.count(_ == list.max)
-      val expectedCount: Int = likelihood.ceil.toInt * 2
+      // fudgeFactor is used to compensate for the fact that the limited number
+      // of runs doesn't model perfect mathematical theory; we'll often end up
+      // with one or two above the theoretical expected number because of randomness
+      val fudgeFactor = (rounds * 0.005).toInt
+      val expectedCount: Int = likelihood.ceil.toInt + fudgeFactor
       maxCount must be < expectedCount
     }
   }
