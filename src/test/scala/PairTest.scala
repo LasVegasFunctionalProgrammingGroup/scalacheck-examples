@@ -2,6 +2,7 @@ package test
 
 import org.scalatest._
 import org.scalatest.prop.{Checkers, GeneratorDrivenPropertyChecks}
+import org.scalatest.exceptions.GeneratorDrivenPropertyCheckFailedException
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
 
@@ -35,8 +36,15 @@ class PairTest extends FreeSpec
       }
 
       "not equal when the values are in reversed order" in {
-        forAll { (i: Int, j: Int) =>
-          new Pair(i, j) must not equal (new Pair(j, i))
+        // an example of a subtle failure if the test conditions
+        // aren't well thought out: if i = j then Pair(i, j) == Pair(j, i)!
+        // so, we should expect this to fail!
+        a [GeneratorDrivenPropertyCheckFailedException] must be thrownBy {
+          // this actually came out of me writing the test and
+          // trying to figure out why it failed
+          forAll { (i: Int, j: Int) =>
+            new Pair(i, j) must not equal (new Pair(j, i))
+          }
         }
       }
 
