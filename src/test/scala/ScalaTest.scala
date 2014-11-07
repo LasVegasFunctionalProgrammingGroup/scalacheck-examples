@@ -2,6 +2,7 @@ package test
 
 import org.scalatest._
 import org.scalatest.prop.{Checkers, GeneratorDrivenPropertyChecks}
+import org.scalatest.exceptions.GeneratorDrivenPropertyCheckFailedException
 import org.scalacheck.Gen
 import org.scalacheck.Prop._
 
@@ -20,9 +21,10 @@ class ScalaTestExample extends FreeSpec
   }
 
   "all integers are even (wait...)" in {
-    check { (i: Int) =>
-      isEven(i)
-    }
+    a [GeneratorDrivenPropertyCheckFailedException] must be thrownBy
+      check { (i: Int) =>
+        isEven(i)
+      }
   }
 
   "all integers times two are even" in {
@@ -55,8 +57,8 @@ class ScalaTestExample extends FreeSpec
     }
 
     "all values are odd" in {
-      // !!!
-      forAll(evens) { isOdd(_) must equal (true) }
+      a [GeneratorDrivenPropertyCheckFailedException] must be thrownBy
+        forAll(evens) { isOdd(_) must equal (true) }
     }
 
     "all values are even" in {
