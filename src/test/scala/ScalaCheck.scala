@@ -1,4 +1,4 @@
-package test.scalacheck
+package test
 
 import org.scalacheck._
 import org.scalacheck.Prop._
@@ -14,12 +14,15 @@ object ScalaCheckExample extends Properties("numbers") {
   intsAreOddOrEven.check
   property("integers are odd or even") = intsAreOddOrEven
 
-// forAll goes up to 8-argument functions
-/*
-http://www.scalacheck.org/files/scalacheck_2.11-1.11.6-api/#org.scalacheck.Prop$
-*/
+  // forAll goes up to 8-argument functions
+  /*
+    http://www.scalacheck.org/files/scalacheck_2.11-1.11.6-api/#org.scalacheck.Prop$
+  */
+  
+  // Have to be careful that the domain being tested over is correct..
   property("integers times two are even (incorrect impl)") =
     forAll { (x: Int) => isEven(x) }
+
   property("integers times two are even (correct impl)") =
     forAll { (x: Int) => isEven(x * 2) }
 
